@@ -22,11 +22,11 @@ RUN pip install --upgrade pip
 # Installer oemer sans ses dépendances (pour éviter le conflit numpy)
 RUN pip install --no-cache-dir oemer
 
-# Installer homr
-RUN pip install --no-cache-dir homr
-
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Installer homr depuis GitHub
+RUN pip install --no-cache-dir git+https://github.com/liebharc/homr.git
 
 ENV OPENCV_OPENCL_RUNTIME=
 ENV OPENCV_OPENCL_DEVICE=:
