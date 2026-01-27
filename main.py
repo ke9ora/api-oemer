@@ -38,7 +38,7 @@ Future<void> analyzePartition(File imageFile) async {
   );
 
   // Ajouter le parametre backend
-  request.fields['backend'] = 'onnx'; // ou 'homr' pour TensorFlow
+  request.fields['backend'] = 'onnx'; // ou 'homr' pour utiliser HOMR qui est plus rapide
 
   // Envoyer la requete
   var response = await request.send();
