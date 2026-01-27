@@ -5,11 +5,11 @@ class MoteurAnalyse(str, Enum):
     """
     Moteurs d'analyse disponibles
 
-    - tensorflow: Utilise TensorFlow (plus precis)
     - onnxruntime: Utilise ONNX Runtime (plus rapide)
+    - homr: Utilise HOMR 
     """
-    tensorflow = "tf"
     onnxruntime = "onnx"
+    homr = "homr"
 
 class RequeteAnalyse(BaseModel):
     backend: MoteurAnalyse = MoteurAnalyse.onnxruntime

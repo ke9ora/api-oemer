@@ -2,8 +2,8 @@ NOM_APPLICATION = "API Oemer"
 DESCRIPTION = "Transformer photos de partitions en fichiers MusicXML"
 VERSION = "1.0.0"
 
-ADRESSE_SERVEUR = "0.0.0.0" 
-PORT_SERVEUR = 8000       
+ADRESSE_SERVEUR = "0.0.0.0"
+PORT_SERVEUR = 8000
 
 FORMATS_ACCEPTES = ('.png', '.jpg', '.jpeg', '.tiff', '.bmp')
 

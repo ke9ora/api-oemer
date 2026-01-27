@@ -4,7 +4,8 @@ import os
 import shutil
 
 from file_utils import creer_dossier_temporaire, verifier_format_image
-from oemer_service import analyser_image_partition
+from oemer_service import analyser_image_partition as analyser_oemer
+from homr_service import analyser_image_partition as analyser_homr, HOMR_AVAILABLE
 from models import MoteurAnalyse
 from config import VERSION
 
@@ -18,7 +19,8 @@ routeur = APIRouter()
 def verifier_sante():
     return {
         "status": "OK",
-        "oemer_ok": True
+        "oemer_ok": True,
+        "homr_ok": HOMR_AVAILABLE
     }
 
 @routeur.post(
@@ -29,11 +31,11 @@ Analyse une image de partition musicale et retourne un fichier MusicXML.
 
 **Parametres d'entree:**
 - file: Image de la partition (PNG, JPG, JPEG, TIFF, BMP)
-- backend: Moteur d'analyse ('tf' ou 'onnx')
+- backend: Moteur d'analyse ('onnx' ou 'homr')
 
 **Retour:** Fichier MusicXML telechargeable
 
-**Temps de traitement:** Peut mettre du temps à répondre 
+**Temps de traitement:** Peut mettre du temps à répondre
 """,
     response_description="Fichier MusicXML genere"
 )
@@ -52,17 +54,25 @@ async def reconnaitre_partition(
     try:
         _, dossier_temporaire = creer_dossier_temporaire()
 
-        contenu_image = await file.read()  
+        contenu_image = await file.read()
         chemin_image = os.path.join(dossier_temporaire, f"input_{file.filename}")
 
         with open(chemin_image, 'wb') as f:
-            f.write(contenu_image) 
+            f.write(contenu_image)
 
-        resultat = analyser_image_partition(
-            chemin_image,
-            dossier_temporaire,
-            moteur=backend.value
-        )
+        if backend.value == "homr":
+            if not HOMR_AVAILABLE:
+                raise HTTPException(
+                    status_code=503,
+                    detail="HOMR n'est pas disponible"
+                )
+            resultat = analyser_homr(chemin_image, dossier_temporaire)
+        else:
+            resultat = analyser_oemer(
+                chemin_image,
+                dossier_temporaire,
+                moteur=backend.value
+            )
 
         if not resultat["fichiers_musicxml"]:
             raise HTTPException(
@@ -74,11 +84,13 @@ async def reconnaitre_partition(
         chemin_fichier_musicxml = os.path.join(dossier_temporaire, nom_fichier_musicxml)
 
         return FileResponse(
-            path=chemin_fichier_musicxml,     
-            filename=nom_fichier_musicxml,    
-            media_type="application/xml",     
+            path=chemin_fichier_musicxml,
+            filename=nom_fichier_musicxml,
+            media_type="application/xml",
         )
 
+    except HTTPException:
+        raise
     except Exception as erreur:
         if dossier_temporaire and os.path.exists(dossier_temporaire):
             shutil.rmtree(dossier_temporaire)
@@ -97,7 +109,7 @@ Retourne directement un fichier MusicXML.
 
 **Parametres d'entree:**
 - file: Image de la partition (PNG, JPG, JPEG, TIFF, BMP)
-- backend: Moteur d'analyse ('tf' ou 'onnx')
+- backend: Moteur d'analyse ('onnx' ou 'homr')
 
 **Retour:** Fichier MusicXML telechargeable
 """,
